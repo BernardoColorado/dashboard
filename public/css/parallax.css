@@ -1,0 +1,42 @@
+
+
+#wrapper{
+box-shadow: 0 0 12px rgba(0 0, 0, 0.8);
+width: 100% !important;
+
+}
+
+section {
+
+
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+	background-size: cover;
+	height: 1100px;
+	margin: 0 auto;
+	max-width: 1600px;
+	overflow: hidden;
+	padding: 0;
+	position: relative;
+	width: 100% !important;
+
+
+}
+
+ #parallax1{
+
+
+ 	background-image: url("../img/parallax/parallax1.jpg");
+ }
+
+ #parallax2{
+
+
+ 	background-image: url("../img/parallax/parallax2.jpg");
+ }
+
+ #parallax3{
+
+
+ 	background-image: url("../img/parallax/parallax3.jpg");
+ }
