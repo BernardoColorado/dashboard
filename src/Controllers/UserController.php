@@ -2,6 +2,7 @@
 
 //espacio de controladores
 namespace App\Controllers;
+
 //
 use App\Models\ORM\Entities\Activation;
 use Psr\Container\ContainerInterface as ContainerInterface;
@@ -10,8 +11,10 @@ use Psr\Http\Message\ResponseInterface as ResponseInterface;
 use Core\Controllers\Controller as Controller;
 use App\Models\ORM\Entities\User as User;
 use DateTime;
+
 //controlador de inicio
 class UserController extends Controller{
+
 
   public function __construct(ContainerInterface $container){
 
@@ -60,6 +63,7 @@ class UserController extends Controller{
     //de fallar la validacion mostramos errores en el mismo formulario
     if(!$this->userValidator->validateLoginForm($userRequest)){
 
+      //mostramos errores en el formulario
       $view['errors']=$this->userValidator->getValidationErrors();
       $this->twig->render($response,'layouts/user/signin.php',$view);
 
@@ -94,8 +98,6 @@ class UserController extends Controller{
           //creamos sesion
           session_start();
           $_SESSION['user'] = $user->getNickname();
-
-          //redireccionamos al index
           return $response->withRedirect($this->app['url'].'/'); 
 
       }
@@ -106,7 +108,7 @@ class UserController extends Controller{
 
   public function signupGet(RequestInterface $request, $response){
 
-    //
+    //renderizamos el template
     $this->twig->render($response,'layouts/user/signup.php',[]);
 
   }
@@ -163,6 +165,8 @@ class UserController extends Controller{
         //iniciamos sesion
         session_start();
         $_SESSION['user'] = $user->getNickname();
+
+        //redirigimos
         return $response->withRedirect($this->app['url'].'/user/activation');
 
       }
@@ -209,18 +213,21 @@ class UserController extends Controller{
     //validamos formulario
     if(!$this->userValidator->validateCodeForm($codeRequest)){
 
+      //mostramos errores
       $view['errors']=$this->userValidator->getValidationErrors();
       $this->twig->render($response,'layouts/user/activation.php',$view);
 
     }
 
-    //validamos codigo de activacion
+    //de ser invalido el codigo de activacion
     if(!$this->userValidator->validateCode($codeRequest)){
 
+      //mostramos errores
       $view['errors']=$this->userValidator->getValidationErrors();
       $this->twig->render($response,'layouts/user/activation.php',$view);
 
     }
+    //de ser valido
     else{
 
       //mandamos llamar usuario
