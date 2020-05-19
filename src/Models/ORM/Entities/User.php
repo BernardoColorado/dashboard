@@ -35,6 +35,10 @@ class User{
    * @ORM\OneToOne(targetEntity="Activation", mappedBy="user")
    */ 
   protected $activation;
+    /**
+   * @ORM\OneToOne(targetEntity="Reset", mappedBy="user")
+   */ 
+  protected $reset;
 
   public function __construct(string $nickname=null,string $password=null,string $email=null)
   {

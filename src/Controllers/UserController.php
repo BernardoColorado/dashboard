@@ -15,7 +15,6 @@ use DateTime;
 //controlador de inicio
 class UserController extends Controller{
 
-
   public function __construct(ContainerInterface $container){
 
     //contenedor
@@ -43,6 +42,7 @@ class UserController extends Controller{
       return $response->withRedirect($this->app['url'].'/');
 
     }
+    //de no existir sesion
     else{
 
       //rendereamos formulario login
@@ -70,8 +70,12 @@ class UserController extends Controller{
     }
     else{
 
+      // tomamos de formulario usuario y password
+      $nickname = $userRequest['nickname'];
+      $password = $userRequest['password'];
+
       //validamos password 
-      switch ($this->userValidator->validatePassword($userRequest)) {    
+      switch ($this->userValidator->validatePassword($nickname,$password)) {    
 
         //en caso de no existir:
         case -1:
@@ -132,11 +136,12 @@ class UserController extends Controller{
     //de ser exitosa validacion de formulario procedemos a crear entidad
     else{
 
-      //creamos entidad
-      $user = $this->userRepository->createEntity($userRequest['nickname'],$userRequest['password'],$userRequest['email']);
+      $nickname = $userRequest['nickname'];
+      $email=$userRequest['email'];
+      $password=$userRequest['password'];
 
       //en caso de existir la entidad
-      if($this->userValidator->alreadyExists($user)){
+      if($this->userValidator->alreadyExists($nickname,$email)){
 
         //mostramos errores en vista y rendereizamos
         $view['errors']=$this->userValidator->getValidationErrors();
@@ -146,6 +151,9 @@ class UserController extends Controller{
 
       //en caso de no existir la entidad guardamos el usuario
       else{
+
+        //creamos entidad
+        $user = $this->userRepository->createEntity($nickname,$email,$password);
 
         //persitimos y ejecutamos, anulamos entidad despues de flush
         $this->entityManager->persist($user);
@@ -203,12 +211,11 @@ class UserController extends Controller{
 
     }
 
+    //tomamos datos de formulario
+    $codeRequest=$request->getParsedBody();
+
     //arreglo de contenido de vista vacio
     $view=[];
-
-    //unimos en un a-array el request y el nickname de la sesion
-    $codeRequest=$request->getParsedBody();
-    $codeRequest['nickname']=$_SESSION['user'];
 
     //validamos formulario
     if(!$this->userValidator->validateCodeForm($codeRequest)){
@@ -219,31 +226,36 @@ class UserController extends Controller{
 
     }
 
-    //de ser invalido el codigo de activacion
-    if(!$this->userValidator->validateCode($codeRequest)){
+    else {
 
-      //mostramos errores
-      $view['errors']=$this->userValidator->getValidationErrors();
-      $this->twig->render($response,'layouts/user/activation.php',$view);
+      $code=$codeRequest['code'];
+      $nickname['nickname']=$_SESSION['user'];
+  
+      //de ser invalido el codigo de activacion
+      if(!$this->userValidator->validateCode($nickname,$code)){
+  
+        //mostramos errores
+        $view['errors']=$this->userValidator->getValidationErrors();
+        $this->twig->render($response,'layouts/user/activation.php',$view);
+  
+      }
+      //de ser valido
+      else{
+  
+        //mandamos llamar usuario
+        $user=$this->userRepository->findOneBy(['nickname'=>$_SESSION['user']]);
+        $activation = $user->getActivation();
+  
+        //eliminamos activacion
+        $this->entityManager->remove($activation);
+        $this->entityManager->flush();
+  
+        //redireccionamos al index
+        return $response->withRedirect($this->app['url'].'/'); 
+        
+      }
 
     }
-    //de ser valido
-    else{
-
-      //mandamos llamar usuario
-      $user=$this->userRepository->findOneBy(['nickname'=>$_SESSION['user']]);
-      $activation = $user->getActivation();
-
-      //eliminamos activacion
-      $this->entityManager->remove($activation);
-      $this->entityManager->flush();
-
-      //redireccionamos al index
-      return $response->withRedirect($this->app['url'].'/'); 
-      
-    }
-
-    
 
   }
   public function signout(RequestInterface $request, $response){

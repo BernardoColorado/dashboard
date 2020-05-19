@@ -10,14 +10,20 @@ use Doctrine\ORM\EntityRepository as Repository;
 
 class UserValidator extends EntityValidator{
 
+  //instancia unica
   protected static $instance=null;
+  //repositorio anidado
   protected $repository=null;
+  //errores
   protected $errors=[];
+  //reglas de validacion
   protected $rules=[];
 
   public function __construct(Repository $repository){
 
+    //instanciamos repositorio
     $this->repository = $repository;
+    //reglas de validacion
     $this->rules['nickname'] = Validator::alnum()->notEmpty()->noWhitespace();
     $this->rules['password'] = Validator::alnum('@','#','$','*','&','*','-','+')->notEmpty()->noWhitespace();
     $this->rules['email'] = Validator::email()->notEmpty()->noWhitespace();
@@ -27,16 +33,23 @@ class UserValidator extends EntityValidator{
 
   public static function create($repository):UserValidator
   {
+    //de no existir instancia la creamos
     if(!self::$instance instanceof self){
       self::$instance=new self($repository);
     }
+    //regresamos instancia unica
     return self::$instance;
   }
 
   public function validateLoginForm(array $form):bool
   {
 
+    //validamos al inicio
     $validation=true;
+
+    //validamos reglas
+    //en caso de fallar validacion:
+    //invalidamos todo el formulario
     try{
       $this->rules['nickname']->setName('nickname')->assert($form['nickname']);
     }
@@ -58,8 +71,12 @@ class UserValidator extends EntityValidator{
   public function validateCodeForm(array $form):bool
   {
 
+    //valido al inicio
     $validation=true;
 
+    //validamos reglas
+    //en caso de fallar validacion:
+    //invalidamos todo el formulario
     try{
       $this->rules['code']->setName('code')->assert($form['code']);
     }
@@ -72,24 +89,25 @@ class UserValidator extends EntityValidator{
 
   }
 
-  public function validateCode(array $fields):bool
+  public function validateCode(string $nickname, string $code):bool
   {
 
-    $code = $fields['code'];
-    $nickname = $fields['nickname'];
-
+    //mandamos llamar entidades
     $user = $this->repository->findOneBy(['nickname'=>$nickname]);
     $activation = $user->getActivation();
 
+    //en caso de ser valido el codigo
     if($activation->verifyCode($code)){
 
+      //validamos
       return true; 
 
     }
+    //en caso de ser invalido el codigo
     else{
 
+      //invalidamos y guardamos error
       $this->errors['code'][]='invalid code';
-
       return false;
 
     }
@@ -99,7 +117,11 @@ class UserValidator extends EntityValidator{
   public function validateSignupForm(array $form):bool
   {
 
+    //valido al inicio
     $validation=true;
+    
+    //validamos regla de cada campo del formulario:
+    //en caso de fallar invalidamos formulario y mostramos errores
     try{
       $this->rules['nickname']->setName('nickname')->assert($form['nickname']);
     }
@@ -127,17 +149,13 @@ class UserValidator extends EntityValidator{
       echo('bad');
       $this->errors['password']='both password and confirmation must be the same';
     }
-
+    //regresamos validacion
     return $validation;
 
   }
 
-  public function validatePassword(array $form):int
+  public function validatePassword(string $nickname,string $password):int
   {
-
-    //tomamos nickname y password
-    $nickname = $form['nickname'];
-    $password = $form['password'];
 
     //mandamos llamar entidad de usuario
     $user=$this->repository->findOneBy(['nickname'=>$nickname]);
@@ -172,12 +190,8 @@ class UserValidator extends EntityValidator{
     }
 
   }
-  public function alreadyExists(User $user):bool
+  public function alreadyExists(string $nickname,string $email):bool
   {
-
-    //obtenemos el nickname y el email por separado
-    $nickname = $user->getNickname();
-    $email = $user->getEmail();
 
     //pedimos una instancia 
     $nicknameUser = $this->repository->findOneBy(['nickname'=>$nickname]);
@@ -189,7 +203,6 @@ class UserValidator extends EntityValidator{
       //mostranmos errores de ambos campos e invalidamos
       $this->errors['nickname'][]='nickname already exists';
       $this->errors['email'][]='email already exists';
-
       return true;
 
     }
@@ -209,8 +222,10 @@ class UserValidator extends EntityValidator{
       return true;
 
     }
+    //en caso de no existir ninguna
     else{
 
+      //regresamos que no existe
       return false;
       
     }
@@ -219,12 +234,16 @@ class UserValidator extends EntityValidator{
   public function isActive(User $user):bool
   {
 
+    //de no existir activacion pendiente
     if($user->getActivation()===null){
 
+      //validamos
       return true;
     }
+    //de existir validacion pendiente
     else{
 
+      //invalidamos
       return false;
 
     }
@@ -233,6 +252,7 @@ class UserValidator extends EntityValidator{
   public function getValidationErrors():array
   {
 
+    //mostramos errores guardados
     return $this->errors;
 
   }

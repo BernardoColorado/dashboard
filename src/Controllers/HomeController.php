@@ -18,6 +18,7 @@ class HomeController extends Controller{
     $this->container=$container;
     $this->twig=$this->container['twig'];
     $this->app=$this->container['app'];
+    
     //orm y entidades
     $this->entityManager = $this->container['entity-manager'];
     $this->userRepository = $this->entityManager->getRepository(User::class);
