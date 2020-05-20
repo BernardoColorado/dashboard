@@ -31,7 +31,6 @@ class UserController extends Controller{
     $this->userValidator = $this->userRepository->getValidator();
 
   }
-
   public function signinGet(RequestInterface $request,$response){
 
     //de existir sesion
@@ -51,7 +50,6 @@ class UserController extends Controller{
     }
 
   }
-
   public function signinPost(RequestInterface $request, $response){
 
     //datos de vista vacios por default
@@ -109,14 +107,12 @@ class UserController extends Controller{
     }
 
   }
-
   public function signupGet(RequestInterface $request, $response){
 
     //renderizamos el template
     $this->twig->render($response,'layouts/user/signup.php',[]);
 
   }
-
   public function signupPost(RequestInterface $request, $response){
 
     //datos de vista vacios por default
@@ -136,6 +132,7 @@ class UserController extends Controller{
     //de ser exitosa validacion de formulario procedemos a crear entidad
     else{
 
+      //
       $nickname = $userRequest['nickname'];
       $email=$userRequest['email'];
       $password=$userRequest['password'];
@@ -153,7 +150,7 @@ class UserController extends Controller{
       else{
 
         //creamos entidad
-        $user = $this->userRepository->createEntity($nickname,$email,$password);
+        $user = $this->userRepository->createEntity($nickname,$password,$email);
 
         //persitimos y ejecutamos, anulamos entidad despues de flush
         $this->entityManager->persist($user);
@@ -161,7 +158,7 @@ class UserController extends Controller{
         unset($user);
 
         //creamos usuario a partir de usuario guardado
-        $user = $this->userRepository->findOneBy(['email'=>$userRequest]);
+        $user = $this->userRepository->findOneBy(['email'=>$email]);
 
         //creamos activacion
         $activation = $this->userRepository->createActivationEntity($user);
@@ -200,6 +197,41 @@ class UserController extends Controller{
     $this->twig->render($response,'layouts/user/activation.php',$view);
 
   }
+  public function reactivation(RequestInterface $request, $response){
+
+    //iniciamos o reanudamos sesion
+    session_start();
+    //de no existir sesion
+    if(!isset($_SESSION['user'])){
+
+      //redirigimos al login
+      return $response->withRedirect($this->app['url'].'/user/signin'); 
+
+    }
+
+    //mandamos llamar usuario y lo incluimos en la lista
+    $user = $this->userRepository->findOneBy(['nickname'=>$_SESSION['user']]);
+
+    print_r($user);
+
+    //tomamos activacion
+    $activation = $user->getActivation();
+
+    //regeneramos codigo
+    $activation->generateCode();
+
+    //reenviamos mail
+    $this->userMailer->sendActivationMail($activation);
+
+    //ciframos y actualizamos
+    $activation->encryptCode();
+    $this->entityManager->flush();
+
+    //redirigimos
+    return $response->withRedirect($this->app['url'].'/user/activation');
+
+
+  }
   public function activationPost(RequestInterface $request, $response){
 
     //de no existir sesion
@@ -228,8 +260,9 @@ class UserController extends Controller{
 
     else {
 
+      //tomamos los campos de usuario y codigo
       $code=$codeRequest['code'];
-      $nickname['nickname']=$_SESSION['user'];
+      $nickname=$_SESSION['user'];
   
       //de ser invalido el codigo de activacion
       if(!$this->userValidator->validateCode($nickname,$code)){
@@ -262,8 +295,10 @@ class UserController extends Controller{
 
     //abrimos sesion de existir
     session_start();
+
     //destruimos sesion
     session_destroy();
+
     //redirigimos a inicio de sesion
     return $response->withRedirect($this->app['url'].'/user/signin'); 
 

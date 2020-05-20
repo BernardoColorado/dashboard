@@ -23,6 +23,7 @@ class UserValidator extends EntityValidator{
 
     //instanciamos repositorio
     $this->repository = $repository;
+
     //reglas de validacion
     $this->rules['nickname'] = Validator::alnum()->notEmpty()->noWhitespace();
     $this->rules['password'] = Validator::alnum('@','#','$','*','&','*','-','+')->notEmpty()->noWhitespace();
@@ -31,7 +32,7 @@ class UserValidator extends EntityValidator{
 
   }
 
-  public static function create($repository):UserValidator
+  public static function create(Repository $repository):UserValidator
   {
     //de no existir instancia la creamos
     if(!self::$instance instanceof self){

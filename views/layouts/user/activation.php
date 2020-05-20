@@ -35,6 +35,10 @@
                   <div class="form-group mt-4">
                     <button class="btn btn-primary btn-block rounded-0" type="submit">ACTIVATE</button>
                   </div>
+
+                  <div class="form-group mt-4">
+                    <a href="{{base_url()}}/user/reactivation">Resend Email</a>
+                  </div>
                 </form>
 
               </div>

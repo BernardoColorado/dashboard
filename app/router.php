@@ -16,6 +16,7 @@ $app->post('/user/signup', App\Controllers\UserController::class.':signupPost');
 
 $app->get('/user/activation', App\Controllers\UserController::class.':activationGet');
 $app->post('/user/activation', App\Controllers\UserController::class.':activationPost');
+$app->get('/user/reactivation', App\Controllers\UserController::class.':reactivation');
 
 $app->get('/user/test', App\Controllers\UserController::class.':test');
 

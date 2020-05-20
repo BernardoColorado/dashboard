@@ -24,7 +24,6 @@ class HomeController extends Controller{
     $this->userRepository = $this->entityManager->getRepository(User::class);
     $this->userValidator = $this->userRepository->getValidator();
 
-
   }
 
   public function index(RequestInterface $request, $response){

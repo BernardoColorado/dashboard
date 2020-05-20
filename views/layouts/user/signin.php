@@ -43,10 +43,15 @@
                     </div>
                     {% for error in errors.password %}
                     <small class="form-text text-danger">{{error}}</small>
-                    {% endfor %}                  </div>
+                    {% endfor %}                  
+                  </div>
 
                   <div class="form-group mt-4">
                     <button class="btn btn-primary btn-block rounded-0" type="submit">LOGIN</button>
+                  </div>
+
+                  <div class="form-group mt-4">
+                    <a href="{{base_url()}}/user/signup">or signup now</a>
                   </div>
 
                 </form>
